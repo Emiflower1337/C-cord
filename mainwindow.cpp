@@ -203,3 +203,5 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.fillRect(rect(), backgroundColor);
     QWidget::paintEvent(event);
 }
+
+// Just to test the Discord Webhook integration :3
