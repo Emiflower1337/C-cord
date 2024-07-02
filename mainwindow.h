@@ -36,6 +36,10 @@ private:
     bool isRightEdge(const QPoint &pos) const;
     bool isTopEdge(const QPoint &pos) const;
     bool isBottomEdge(const QPoint &pos) const;
+
+#ifdef Q_OS_WIN
+    void setBlurEffect();
+#endif
 };
 
 #endif // MAINWINDOW_H

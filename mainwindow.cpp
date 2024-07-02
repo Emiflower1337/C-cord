@@ -6,6 +6,30 @@
 #include <QPalette>
 #include <QPainter>
 #include <QMouseEvent>
+#include <QOperatingSystemVersion>
+
+#ifdef Q_OS_WIN
+#include <dwmapi.h>
+#pragma comment(lib, "Dwmapi.lib")
+
+struct ACCENT_POLICY {
+    int nAccentState;
+    int nFlags;
+    int nColor;
+    int nAnimationId;
+};
+
+struct WINCOMPATTRDATA {
+    int nAttribute;
+    void* pData;
+    ULONG ulDataSize;
+};
+
+#define ACCENT_ENABLE_BLURBEHIND 3
+#define WCA_ACCENT_POLICY 19
+
+typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,8 +38,11 @@ MainWindow::MainWindow(QWidget *parent)
     , m_resizing(false)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
+    setAttribute(Qt::WA_TranslucentBackground, true);
+
     setupCustomTitleBar();
+    setBlurEffect();
 }
 
 MainWindow::~MainWindow()
@@ -62,6 +89,36 @@ void MainWindow::setupCustomTitleBar()
 
     setMenuWidget(titleBar);
 }
+
+#ifdef Q_OS_WIN
+void MainWindow::setBlurEffect()
+{
+    HWND hwnd = reinterpret_cast<HWND>(winId());
+
+    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10) {
+        // For Windows 10 and later
+        const HINSTANCE hModule = LoadLibrary(TEXT("user32.dll"));
+        if (hModule) {
+            pSetWindowCompositionAttribute SetWindowCompositionAttribute = reinterpret_cast<pSetWindowCompositionAttribute>(GetProcAddress(hModule, "SetWindowCompositionAttribute"));
+
+            if (SetWindowCompositionAttribute) {
+                ACCENT_POLICY accent = { ACCENT_ENABLE_BLURBEHIND, 0, 0, 0 };
+                WINCOMPATTRDATA data = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
+                SetWindowCompositionAttribute(hwnd, &data);
+            }
+            FreeLibrary(hModule);
+        }
+    } else {
+        // For Windows Vista to 8.1
+        DWM_BLURBEHIND bb = { 0 };
+        bb.dwFlags = DWM_BB_ENABLE;
+        bb.fEnable = true;
+        bb.hRgnBlur = nullptr;
+
+        DwmEnableBlurBehindWindow(hwnd, &bb);
+    }
+}
+#endif
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
@@ -142,6 +199,7 @@ bool MainWindow::isBottomEdge(const QPoint &pos) const
 void MainWindow::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
-    painter.fillRect(rect(), QColor(45, 45, 45));
+    QColor backgroundColor = QColor(45, 45, 45, 180);
+    painter.fillRect(rect(), backgroundColor);
     QWidget::paintEvent(event);
 }
