@@ -27,5 +27,15 @@ private:
     void setupCustomTitleBar();
     QPoint m_dragPosition;
     bool m_dragging;
+
+    bool m_resizing;
+    QRect m_originalRect;
+
+    bool isAtEdge(const QPoint &pos) const;
+    bool isLeftEdge(const QPoint &pos) const;
+    bool isRightEdge(const QPoint &pos) const;
+    bool isTopEdge(const QPoint &pos) const;
+    bool isBottomEdge(const QPoint &pos) const;
 };
+
 #endif // MAINWINDOW_H

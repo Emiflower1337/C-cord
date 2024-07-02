@@ -5,11 +5,13 @@
 #include <QStyle>
 #include <QPalette>
 #include <QPainter>
+#include <QMouseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_dragging(false)
+    , m_resizing(false)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Window);
@@ -36,7 +38,7 @@ void MainWindow::setupCustomTitleBar()
     QPushButton *maximizeButton = new QPushButton(titleBar);
     QPushButton *closeButton = new QPushButton(titleBar);
 
-    int buttonSize = 12; // Smaller button size
+    int buttonSize = 12;
     minimizeButton->setFixedSize(buttonSize, buttonSize);
     maximizeButton->setFixedSize(buttonSize, buttonSize);
     closeButton->setFixedSize(buttonSize, buttonSize);
@@ -63,9 +65,15 @@ void MainWindow::setupCustomTitleBar()
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && event->pos().y() <= 30) {
-        m_dragPosition = event->globalPos() - frameGeometry().topLeft();
-        m_dragging = true;
+    if (event->button() == Qt::LeftButton) {
+        if (event->pos().y() <= 30) {
+            m_dragPosition = event->globalPos() - frameGeometry().topLeft();
+            m_dragging = true;
+        } else if (isAtEdge(event->pos())) {
+            m_dragPosition = event->globalPos();
+            m_resizing = true;
+            m_originalRect = frameGeometry();
+        }
         event->accept();
     }
 }
@@ -75,6 +83,25 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     if (m_dragging && (event->buttons() & Qt::LeftButton)) {
         move(event->globalPos() - m_dragPosition);
         event->accept();
+    } else if (m_resizing && (event->buttons() & Qt::LeftButton)) {
+        QRect newRect = m_originalRect;
+        QPoint diff = event->globalPos() - m_dragPosition;
+
+        if (isLeftEdge(m_dragPosition)) {
+            newRect.setLeft(newRect.left() + diff.x());
+        }
+        if (isRightEdge(m_dragPosition)) {
+            newRect.setRight(newRect.right() + diff.x());
+        }
+        if (isTopEdge(m_dragPosition)) {
+            newRect.setTop(newRect.top() + diff.y());
+        }
+        if (isBottomEdge(m_dragPosition)) {
+            newRect.setBottom(newRect.bottom() + diff.y());
+        }
+
+        setGeometry(newRect);
+        event->accept();
     }
 }
 
@@ -82,8 +109,34 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         m_dragging = false;
+        m_resizing = false;
         event->accept();
     }
+}
+
+bool MainWindow::isAtEdge(const QPoint &pos) const
+{
+    return isLeftEdge(pos) || isRightEdge(pos) || isTopEdge(pos) || isBottomEdge(pos);
+}
+
+bool MainWindow::isLeftEdge(const QPoint &pos) const
+{
+    return pos.x() <= 5;
+}
+
+bool MainWindow::isRightEdge(const QPoint &pos) const
+{
+    return pos.x() >= width() - 5;
+}
+
+bool MainWindow::isTopEdge(const QPoint &pos) const
+{
+    return pos.y() <= 5;
+}
+
+bool MainWindow::isBottomEdge(const QPoint &pos) const
+{
+    return pos.y() >= height() - 5;
 }
 
 void MainWindow::paintEvent(QPaintEvent *event)
