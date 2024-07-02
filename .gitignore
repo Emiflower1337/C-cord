@@ -77,3 +77,6 @@ compile_commands.json
 # Flags for Clang Code Model
 *.cxxflags
 *.cflags
+
+# Build folder
+/build
