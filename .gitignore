@@ -79,4 +79,4 @@ compile_commands.json
 *.cflags
 
 # Build folder
-/build
+build/
