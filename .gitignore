@@ -80,3 +80,6 @@ compile_commands.json
 
 # Build folder
 /build/Desktop_Qt_*
+
+# VSCode 
+.vscode/*
