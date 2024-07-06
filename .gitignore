@@ -85,4 +85,4 @@ compile_commands.json
 .vscode/*
 
 # CMake user
-*.user
+*.txt.user
