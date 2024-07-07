@@ -25,6 +25,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         titlebar.cpp
         assets.qrc
+        titlebar.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET DisCpp APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

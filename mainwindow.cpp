@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "titlebar.cpp"
+#include "titlebar.h"
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QStyle>
@@ -8,29 +8,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QOperatingSystemVersion>
-
-//#ifdef Q_OS_WIN
-//#include <dwmapi.h>
-//#pragma comment(lib, "Dwmapi.lib")
-
-//struct ACCENT_POLICY {
-//    int nAccentState;
-//    int nFlags;
-//    int nColor;
-//    int nAnimationId;
-//};
-
-//struct WINCOMPATTRDATA {
-//    int nAttribute;
-//    void* pData;
-//    ULONG ulDataSize;
-//};
-
-//#define ACCENT_ENABLE_BLURBEHIND 3
-//#define WCA_ACCENT_POLICY 19
-
-//typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
-//#endif
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -38,21 +16,23 @@ MainWindow::MainWindow(QWidget *parent)
     , m_dragging(false)
     , m_resizing(false)
 {
+    qDebug() << "MainWindow constructor start";
     ui->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
-    //setAttribute(Qt::WA_TranslucentBackground, true);
 
     setupCustomTitleBar();
-    //setBlurEffect();
+    qDebug() << "MainWindow constructor end";
 }
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "MainWindow destructor";
     delete ui;
 }
 
 void MainWindow::setupCustomTitleBar()
 {
+    qDebug() << "setupCustomTitleBar start";
     QWidget *titleBar = new QWidget(this);
     titleBar->setFixedHeight(30);
 
@@ -65,18 +45,9 @@ void MainWindow::setupCustomTitleBar()
     TitleBarButton *minimizeButton = TitleBarButton::fromColor(QColor::fromRgb(0xFF, 0xCC, 0x00));
     minimizeButton->setParent(titleBar);
     TitleBarButton *maximizeButton = TitleBarButton::fromColor(QColor::fromRgb(0x00, 0xCC, 0x00));
-    minimizeButton->setParent(titleBar);
+    maximizeButton->setParent(titleBar);
     TitleBarButton *closeButton = TitleBarButton::fromColor(QColor::fromRgb(0xFF, 0x3b, 0x30));
-    minimizeButton->setParent(titleBar);
-
-    // int buttonSize = 12;
-    // minimizeButton->setFixedSize(buttonSize, buttonSize);
-    // maximizeButton->setFixedSize(buttonSize, buttonSize);
-    // closeButton->setFixedSize(buttonSize, buttonSize);
-
-    // minimizeButton->setStyleSheet("background-color: #FFCC00; border-radius: 6px;");
-    // maximizeButton->setStyleSheet("background-color: #00CC00; border-radius: 6px;");
-    // closeButton->setStyleSheet("background-color: #FF3B30; border-radius: 6px;");
+    closeButton->setParent(titleBar);
 
     connect(minimizeButton, &QPushButton::clicked, this, &QMainWindow::showMinimized);
     connect(maximizeButton, &QPushButton::clicked, [this]() {
@@ -92,40 +63,12 @@ void MainWindow::setupCustomTitleBar()
     layout->setContentsMargins(0, 0, 5, 0);
 
     setMenuWidget(titleBar);
+    qDebug() << "setupCustomTitleBar end";
 }
-
-//#ifdef Q_OS_WIN
-//void MainWindow::setBlurEffect()
-//{
-//    HWND hwnd = reinterpret_cast<HWND>(winId());
-
-//    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion::Windows10) {
-//        // For Windows 10 and later
-//        const HINSTANCE hModule = LoadLibrary(TEXT("user32.dll"));
-//        if (hModule) {
-//            pSetWindowCompositionAttribute SetWindowCompositionAttribute = reinterpret_cast<pSetWindowCompositionAttribute>(GetProcAddress(hModule, "SetWindowCompositionAttribute"));
-
-//            if (SetWindowCompositionAttribute) {
-//                ACCENT_POLICY accent = { ACCENT_ENABLE_BLURBEHIND, 0, 0, 0 };
-//                WINCOMPATTRDATA data = { WCA_ACCENT_POLICY, &accent, sizeof(accent) };
-//                SetWindowCompositionAttribute(hwnd, &data);
-//            }
-//            FreeLibrary(hModule);
-//        }
-//    } else {
-//        // For Windows Vista to 8.1
-//        DWM_BLURBEHIND bb = { 0 };
-//        bb.dwFlags = DWM_BB_ENABLE;
-//        bb.fEnable = true;
-//        bb.hRgnBlur = nullptr;
-
-//        DwmEnableBlurBehindWindow(hwnd, &bb);
-//    }
-//}
-//#endif
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
+    qDebug() << "mousePressEvent start";
     if (event->button() == Qt::LeftButton) {
         if (event->pos().y() <= 30) {
             m_dragPosition = event->globalPos() - frameGeometry().topLeft();
@@ -137,10 +80,12 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         }
         event->accept();
     }
+    qDebug() << "mousePressEvent end";
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
+    qDebug() << "mouseMoveEvent start";
     if (m_dragging && (event->buttons() & Qt::LeftButton)) {
         move(event->globalPos() - m_dragPosition);
         event->accept();
@@ -164,15 +109,18 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
         setGeometry(newRect);
         event->accept();
     }
+    qDebug() << "mouseMoveEvent end";
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
+    qDebug() << "mouseReleaseEvent start";
     if (event->button() == Qt::LeftButton) {
         m_dragging = false;
         m_resizing = false;
         event->accept();
     }
+    qDebug() << "mouseReleaseEvent end";
 }
 
 bool MainWindow::isAtEdge(const QPoint &pos) const
@@ -202,8 +150,10 @@ bool MainWindow::isBottomEdge(const QPoint &pos) const
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
+    qDebug() << "paintEvent start";
     QPainter painter(this);
-    QColor backgroundColor = QColor(45, 45, 45 /*, 180*/);
+    QColor backgroundColor = QColor(45, 45, 45);
     painter.fillRect(rect(), backgroundColor);
     QWidget::paintEvent(event);
+    qDebug() << "paintEvent end";
 }

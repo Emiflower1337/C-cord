@@ -27,7 +27,6 @@ private:
     void setupCustomTitleBar();
     QPoint m_dragPosition;
     bool m_dragging;
-
     bool m_resizing;
     QRect m_originalRect;
 
