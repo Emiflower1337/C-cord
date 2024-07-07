@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "titlebar.cpp"
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QStyle>
@@ -61,18 +62,21 @@ void MainWindow::setupCustomTitleBar()
     darkPalette.setColor(QPalette::ButtonText, Qt::white);
     setPalette(darkPalette);
 
-    QPushButton *minimizeButton = new QPushButton(titleBar);
-    QPushButton *maximizeButton = new QPushButton(titleBar);
-    QPushButton *closeButton = new QPushButton(titleBar);
+    TitleBarButton *minimizeButton = TitleBarButton::fromColor(QColor::fromRgb(0xFF, 0xCC, 0x00));
+    minimizeButton->setParent(titleBar);
+    TitleBarButton *maximizeButton = TitleBarButton::fromColor(QColor::fromRgb(0x00, 0xCC, 0x00));
+    minimizeButton->setParent(titleBar);
+    TitleBarButton *closeButton = TitleBarButton::fromColor(QColor::fromRgb(0xFF, 0x3b, 0x30));
+    minimizeButton->setParent(titleBar);
 
-    int buttonSize = 12;
-    minimizeButton->setFixedSize(buttonSize, buttonSize);
-    maximizeButton->setFixedSize(buttonSize, buttonSize);
-    closeButton->setFixedSize(buttonSize, buttonSize);
+    // int buttonSize = 12;
+    // minimizeButton->setFixedSize(buttonSize, buttonSize);
+    // maximizeButton->setFixedSize(buttonSize, buttonSize);
+    // closeButton->setFixedSize(buttonSize, buttonSize);
 
-    minimizeButton->setStyleSheet("background-color: #FFCC00; border-radius: 6px;");
-    maximizeButton->setStyleSheet("background-color: #00CC00; border-radius: 6px;");
-    closeButton->setStyleSheet("background-color: #FF3B30; border-radius: 6px;");
+    // minimizeButton->setStyleSheet("background-color: #FFCC00; border-radius: 6px;");
+    // maximizeButton->setStyleSheet("background-color: #00CC00; border-radius: 6px;");
+    // closeButton->setStyleSheet("background-color: #FF3B30; border-radius: 6px;");
 
     connect(minimizeButton, &QPushButton::clicked, this, &QMainWindow::showMinimized);
     connect(maximizeButton, &QPushButton::clicked, [this]() {
